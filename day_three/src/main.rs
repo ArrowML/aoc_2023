@@ -1,7 +1,5 @@
 use std::fs::File;
 use std::io::{BufReader, BufRead};
-
-use std::collections::HashMap;
 use std::ops::Add;
 
 #[derive(Debug, Clone, Hash)]
@@ -11,11 +9,10 @@ struct Point {
     y: usize
 }
 
-#[derive(Debug, Hash)]
+#[derive(Debug, Clone, Hash)]
 struct Number {
     val: i64,
     co_ords: Vec<Point>,
-    found: bool
 }
 
 const PERIOD: char = '.';
@@ -32,37 +29,54 @@ fn main() {
             let point = Point{val: c.1, x: c.0, y: line.0};
             row.push(point);
         }
+        row.push(Point { val: '.', x: row.len() + 1, y: line.0});
         grid.push(row)
     }
 
     part1(&grid);
-    part2();
+    part2(&grid);
 }
 
 fn part1(grid: &Vec<Vec<Point>>) {
 
     let mut total: i64 = 0;
-    let mut all: i64 = 0;
-    let mut not: i64 = 0;
-
     let numbers = parse_numbers(&grid);
     for num in numbers {
-        all = all.add(num.val);
-
-
         if test_adjacents(grid, &num) {
             total = total.add(num.val);
-            println!("number: {} - value: {}", num.val, total);
-        } else {
-            not = not.add(num.val);
-        }
+        } 
     }
-    let diff = all - not;
+    println!("{}", total);
 }
 
-fn part2() {
-    let mut total: i32 = 0;
+fn part2(grid: &Vec<Vec<Point>>) {
+    
+    let mut total: i64 = 0;
+    let numbers: Vec<Number> = parse_numbers(&grid);
+    let stars = parse_stars(grid);
+
+    let mut ratios: Vec<Vec<Number>> = Vec::new();
+
+    for star in stars {
+        let adjacents = get_adjacents(grid, &star);
+        let mut adj_nums: Vec<Number> = Vec::new();
+        for num in &numbers {
+            if check_intersect(&adjacents, &num.co_ords) {
+                adj_nums.push(num.clone());
+            }
+        }
+        ratios.push(adj_nums);
+    }
+
+    for ratio in ratios {
+        if ratio.len() == 2 {
+            let r = ratio[0].val * ratio[1].val;
+            total = total.add(r);
+        }
+    }
+
     println!("{}", total);
+
 }
 
 fn is_symbol(c: &char) -> bool {
@@ -70,6 +84,7 @@ fn is_symbol(c: &char) -> bool {
     !c.is_digit(10) &&
     c != &PERIOD 
 }
+
 
 fn parse_numbers(grid: &Vec<Vec<Point>>) -> Vec<Number> {
 
@@ -86,7 +101,7 @@ fn parse_numbers(grid: &Vec<Vec<Point>>) -> Vec<Number> {
 
             if (point.val == PERIOD || is_symbol(&point.val)) && number_str != "" {
                 let number_val: i64 = number_str.parse::<i64>().unwrap();
-                let number = Number{val: number_val, co_ords: co_ords.clone(), found: false};
+                let number = Number{val: number_val, co_ords: co_ords.clone()};
                 numbers.push(number);
                 number_str = "".to_string();
                 co_ords.clear();
@@ -94,21 +109,21 @@ fn parse_numbers(grid: &Vec<Vec<Point>>) -> Vec<Number> {
         }
     }
 
-    //println!("{:?}", numbers);
+    // println!("{:?}", numbers);
     numbers
 }
 
-fn parse_symbols(grid: &Vec<Vec<Point>>) -> Vec<Point> {
-    let mut symbols: Vec<Point> = Vec::new();
+fn parse_stars(grid: &Vec<Vec<Point>>) -> Vec<Point> {
+    let mut stars: Vec<Point> = Vec::new();
     for row in grid {
         for point in row {
-            if is_symbol(&point.val) {
-                symbols.push(point.clone())
+            if point.val == '*' {
+                stars.push(point.clone())
             }
         }
     }
-    //println!("{:?}", symbols);
-    symbols
+    // println!("{:?}", stars);
+    stars
 }
 
 fn test_adjacents(grid: &Vec<Vec<Point>>, num: &Number) -> bool {
@@ -119,57 +134,49 @@ fn test_adjacents(grid: &Vec<Vec<Point>>, num: &Number) -> bool {
     for co in &num.co_ords {
 
         if co.y > 0 {
-            let val = get_point_value(grid, co.x, co.y - 1);
-            if is_symbol(&val) {
+            if is_symbol(&grid[co.y - 1][co.x].val) {
                 return true
             }
         }
 
         if co.x > 0 && co.y > 0 {
-            let val = get_point_value(grid, co.x - 1, co.y - 1);
-            if is_symbol(&val) {
+            if is_symbol(&grid[co.y - 1][co.x - 1].val) {
                 return true
             }
         }
 
         if co.x > 0 {
-            let val = get_point_value(grid, co.x - 1, co.y);
-            if is_symbol(&val) {
+            if is_symbol(&grid[co.y][co.x - 1].val) {
                 return true
             }
         }
 
         if co.x > 0 && co.y + 1 <= max_col {
-            let val = get_point_value(grid, co.x - 1, co.y + 1);
-            if is_symbol(&val) {
+            if is_symbol(&grid[co.y + 1][co.x - 1].val) {
                 return true
             }
         }
 
         if co.y + 1 <= max_col {
-            let val = get_point_value(grid, co.x, co.y + 1);
-            if is_symbol(&val) {
+            if is_symbol(&grid[co.y + 1][co.x].val) {
                 return true
             }
         }
 
         if co.x + 1 <= max_row && co.y + 1 <= max_col {
-            let val = get_point_value(grid, co.x + 1, co.y + 1);
-            if is_symbol(&val) {
+            if is_symbol(&grid[co.y + 1][co.x + 1].val) {
                 return true
             }
         }
 
         if co.x + 1 <= max_row  {
-            let val = get_point_value(grid, co.x + 1, co.y);
-            if is_symbol(&val) {
+            if is_symbol(&grid[co.y][co.x + 1].val) {
                 return true
             }
         }
 
         if co.x + 1 <= max_row && co.y > 0 {
-            let val = get_point_value(grid, co.x + 1, co.y -1);
-            if is_symbol(&val) {
+            if is_symbol(&grid[co.y - 1][co.x + 1].val) {
                 return true
             }
         }
@@ -178,7 +185,61 @@ fn test_adjacents(grid: &Vec<Vec<Point>>, num: &Number) -> bool {
     false
 }
 
+fn get_adjacents(grid: &Vec<Vec<Point>>, co: &Point) -> Vec<Point> {
+
+    let max_col = grid.len() - 1;
+    let max_row = grid[0].len() - 1;
+
+    let mut adjacents: Vec<Point> = Vec::new();
+
+    if co.y > 0 {
+        adjacents.push(Point { val: '-', x: co.x, y: co.y - 1 })
+    }
+
+    if co.x > 0 && co.y > 0 {
+        adjacents.push(Point { val: '-', x: co.x - 1, y: co.y - 1 })
+    }
+
+    if co.x > 0 {
+        adjacents.push(Point { val: '-', x: co.x - 1, y: co.y })
+    }
+
+    if co.x > 0 && co.y + 1 <= max_col {
+        adjacents.push(Point { val: '-', x: co.x - 1, y: co.y + 1 })
+    }
+
+    if co.y + 1 <= max_col {
+        adjacents.push(Point { val: '-', x: co.x, y: co.y + 1 })
+    }
+
+    if co.x + 1 <= max_row && co.y + 1 <= max_col {
+        adjacents.push(Point { val: '-', x: co.x + 1, y: co.y + 1 })
+    }
+
+    if co.x + 1 <= max_row  {
+        adjacents.push(Point { val: '-', x: co.x + 1, y: co.y })
+    }
+
+    if co.x + 1 <= max_row && co.y > 0 {
+        adjacents.push(Point { val: '-', x: co.x + 1, y: co.y - 1 })
+    }
+
+    adjacents
+    
+}
+
 fn get_point_value(grid: &Vec<Vec<Point>>, x: usize, y: usize) -> char {
     return grid[y][x].val;
+}
+
+fn check_intersect(one: &Vec<Point>, two: &Vec<Point>) -> bool {
+    for p1 in one {
+        for p2 in two {
+            if p1.x == p2.x && p1.y == p2.y {
+                return true
+            }
+        }
+    }
+    false
 }
 

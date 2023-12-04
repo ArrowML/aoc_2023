@@ -1,5 +1,5 @@
 [package]
-name = "day-three"
+name = "day_three"
 version = "0.1.0"
 edition = "2021"
 
