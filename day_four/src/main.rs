@@ -30,17 +30,24 @@ fn part1() {
 }
 
 fn part2() {
-    let file: File = File::open("./src/test.txt").unwrap();
+    let file: File = File::open("./src/input.txt").unwrap();
     let reader: BufReader<File> = BufReader::new(file);
 
-    let mut card_counter: HashMap<i64, i64> = HashMap::new();
+    let mut counter: HashMap<i64, i64> = HashMap::new();
 
     for (card_no, line) in reader.lines().enumerate() {
         let game = parse_game(line.unwrap());
-        let wins = get_wins(&game);
+        let wins = get_wins(&game); 
+        let card = card_no as i64;
+        counter.entry(card).or_insert(1);
+
+        for n in card_no + 1..card_no + wins + 1 {
+            let c = n as i64;
+            counter.insert(c, counter.get(&c).unwrap_or(&1) + counter[&card]);
+        }
     }
 
-    let total: i64 = card_counter.values().sum();
+    let total: i64 = counter.values().sum();
     println!("{}", total);
 }
 
