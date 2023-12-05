@@ -30,7 +30,7 @@ fn part1() {
 }
 
 fn part2() {
-    let file: File = File::open("./src/input.txt").unwrap();
+    let file: File = File::open("./src/input .txt").unwrap();
     let reader: BufReader<File> = BufReader::new(file);
 
     let mut counter: HashMap<i64, i64> = HashMap::new();
@@ -69,7 +69,7 @@ fn get_points(count: i64) -> i64 {
         return count;
     }
     let mut score = 1;
-    for n in 1..count {
+    for _ in 1..count {
         score = score + score;
     }
     return score;

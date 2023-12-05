@@ -228,10 +228,6 @@ fn get_adjacents(grid: &Vec<Vec<Point>>, co: &Point) -> Vec<Point> {
     
 }
 
-fn get_point_value(grid: &Vec<Vec<Point>>, x: usize, y: usize) -> char {
-    return grid[y][x].val;
-}
-
 fn check_intersect(one: &Vec<Point>, two: &Vec<Point>) -> bool {
     for p1 in one {
         for p2 in two {
