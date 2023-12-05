@@ -3,7 +3,6 @@ use std::fs::File;
 use std::io::{BufReader, BufRead};
 
 use std::time::Instant;
-use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 struct Map {
@@ -12,9 +11,9 @@ struct Map {
 }
 #[derive(Debug, Clone)]
 struct IntMap {
-    source: u64,
-    destination: u64,
-    range: u64
+    source: i64,
+    destination: i64,
+    range: i64
 }
 
 #[derive(Debug, Clone)]
@@ -45,13 +44,13 @@ impl MapType {
 }
 
 fn main() {
-    //part1();
+    // part1();
     part2();
 }
 
 fn part1() {
     let data = parse_data();
-    let mut results: Vec<u64> = Vec::new();
+    let mut results: Vec<i64> = Vec::new();
     for s in data.0 {
         results.push(get_map_path(s, &data.1))
     }
@@ -62,62 +61,48 @@ fn part1() {
 fn part2() {
 
     let data = parse_data();
-    let mut results: HashMap<u64, u64> = HashMap::new();
     let now = Instant::now();
 
-    let mut ranges: Vec<(u64, u64)> = Vec::new();
+    let mut seeds: Vec<(i64, i64)> = Vec::new();
     for (i, num) in data.0.iter().enumerate() {
         if i%2 == 0 {
-            ranges.push((*num, num + data.0[i + 1]));
+            seeds.push((*num, num + data.0[i + 1] - 1));
         }
     }
 
-    ranges.sort();
-
-    println!("{:?}", ranges);
-
-    let mut overlaps: Vec<u64> = Vec::new();
-    for i in 1..ranges.len() - 1 {
-        let min = ranges[i - 1].0;
-        let max = ranges[i - 1].1;
-
-        if max > ranges[i].0 {
-
-        }
-
-    }
-    /*
-
-    1000 - 2000  1300 - 2100  3000 - 4000
-
-    for (i, num) in data.0.iter().enumerate() {
-        if i%2 == 0 {
-            let range = data.0[i+1];
-            for n in 0..range {
-                let it: u64 = num + n;
-                if results.get(&it).is_none() {
-                    let res = get_map_path(it, &data.1);
-                    results.insert(it, res);
-                }
-                if n%100000 == 0 {
-                    let elapsed = now.elapsed();
-                    println!("Elapsed: {:.2?}", elapsed);   
+    for block in data.1 {
+        let mut new: Vec<(i64,i64)> = Vec::new();
+        while seeds.len() > 0 {
+            let (s, e) = seeds.pop().unwrap();
+            for m in &block.ranges {
+                let os = s.max(m.source);
+                let oe = e.min(m.source + m.range);
+                if os < oe {
+                    new.push((os - m.source + m.destination, oe - m.source + m.destination));
+                    if os > s {
+                        seeds.push((s, os))
+                    }
+                    if e > oe {
+                        seeds.push((oe, e))
+                    }
+                    break; 
                 }
             }
+            new.push((s, e));
         }
+        seeds = new;
     }
-    */
 
-    let total: u64 = *results.values().min().unwrap();
-    println!("{}", total);
+    //println!("{:?}", seeds.iter().min().unwrap());
+    println!("{:?}", seeds);
 
 } 
 
-fn parse_data() -> (Vec<u64>, Vec<Map>) {
-    let file: File = File::open("./src/input.txt").unwrap();
+fn parse_data() -> (Vec<i64>, Vec<Map>) {
+    let file: File = File::open("./src/test.txt").unwrap();
     let reader: BufReader<File> = BufReader::new(file);
 
-    let mut seeds: Vec<u64> = Vec::new();
+    let mut seeds: Vec<i64> = Vec::new();
     let mut int_maps: Vec<Map> = Vec::new();
 
     let mut section = false;
@@ -137,7 +122,7 @@ fn parse_data() -> (Vec<u64>, Vec<Map>) {
             let parts: Vec<&str> = line.as_ref().unwrap().split(":").collect();
 
             if parts[0] == "seeds" {
-                seeds = parts[1].trim().split_whitespace().map(|n| n.parse::<u64>().unwrap()).collect();
+                seeds = parts[1].trim().split_whitespace().map(|n| n.parse::<i64>().unwrap()).collect();
                 continue;
             } else {
                 map_type = Some(MapType::from_string(parts[0]));
@@ -147,7 +132,7 @@ fn parse_data() -> (Vec<u64>, Vec<Map>) {
         }
 
         if ch.is_digit(10) {
-            let range_parts: Vec<u64> = line.as_ref().unwrap().trim().split_whitespace().map(|n: &str| n.parse::<u64>().unwrap()).collect();
+            let range_parts: Vec<i64> = line.as_ref().unwrap().trim().split_whitespace().map(|n: &str| n.parse::<i64>().unwrap()).collect();
             ranges.push(IntMap { source: range_parts[1], destination: range_parts[0], range: range_parts[2] });
             continue;
         }   
@@ -164,27 +149,22 @@ fn parse_data() -> (Vec<u64>, Vec<Map>) {
 }
 
 
-fn get_map_path(id: u64, maps: &Vec<Map>) -> u64 {
-    let mut res: u64 = id;
+fn get_map_path(id: i64, maps: &Vec<Map>) -> i64 {
+    let mut res: i64 = id;
     for m in maps {
         res = get_mapping(res, m);
     }
     return res;
 }
 
-fn get_mapping(id: u64, map: &Map) -> u64 {
+fn get_mapping(id: i64, map: &Map) -> i64 {
     for m in &map.ranges {
         let min = m.source;
         let max = (m.source + m.range) - 1;
         if id >= min && id <= max {
-            let diff = m.source.abs_diff(m.destination);
-            if m.source > m.destination {
-                return id - diff;
-            }
-            if m.source < m.destination {
-                return id + diff;
-            }
+            return id - m.source + m.destination;
         }
     }
     return id;
 }
+
