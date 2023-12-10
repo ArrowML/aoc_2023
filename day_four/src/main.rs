@@ -24,7 +24,7 @@ fn part1() {
         let game = parse_game(line.unwrap());
         let res: Vec<i64> = game.player.into_iter().filter(|n| game.winning.contains(n)).collect();
         let points = get_points(res.len() as i64);
-        total = total + points;
+        total += points;
     }
     println!("{}", total);
 }
@@ -53,15 +53,15 @@ fn part2() {
 
 fn get_wins(game: &Game) -> usize {
     let res: Vec<&i64> = game.player.iter().filter(|n| game.winning.contains(n)).collect::<Vec<&i64>>();
-    return res.len();
+    res.len()
 }
 
 fn parse_game(line: String) -> Game {
-    let parts: Vec<&str> = line.split(":").collect();
-    let game_sections: Vec<&str> = parts[1].split("|").collect();
-    let winning_nums: Vec<i64> = game_sections[0].trim().split_whitespace().map(|n| n.parse::<i64>().unwrap()).collect();
-    let player_nums: Vec<i64> = game_sections[1].trim().split_whitespace().map(|n| n.parse::<i64>().unwrap()).collect();
-    return Game { winning: winning_nums, player: player_nums }
+    let parts: Vec<&str> = line.split(':').collect();
+    let game_sections: Vec<&str> = parts[1].split('|').collect();
+    let winning_nums: Vec<i64> = game_sections[0].split_whitespace().map(|n| n.parse::<i64>().unwrap()).collect();
+    let player_nums: Vec<i64> = game_sections[1].split_whitespace().map(|n| n.parse::<i64>().unwrap()).collect();
+    Game { winning: winning_nums, player: player_nums }
 }
 
 fn get_points(count: i64) -> i64 {
@@ -72,5 +72,5 @@ fn get_points(count: i64) -> i64 {
     for _ in 1..count {
         score = score + score;
     }
-    return score;
+    score
 }
