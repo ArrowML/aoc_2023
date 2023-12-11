@@ -74,10 +74,13 @@ fn part2() {
         let mut new: Vec<(i64,i64)> = Vec::new();
         while seeds.len() > 0 {
             let (s, e) = seeds.pop().unwrap();
+            let mut found = false;
             for m in &block.ranges {
                 let os = s.max(m.source);
                 let oe = e.min(m.source + m.range);
+
                 if os < oe {
+                    found = true;
                     new.push((os - m.source + m.destination, oe - m.source + m.destination));
                     if os > s {
                         seeds.push((s, os))
@@ -88,18 +91,20 @@ fn part2() {
                     break; 
                 }
             }
-            new.push((s, e));
+            if !found {
+                new.push((s, e));
+            }
         }
         seeds = new;
     }
 
-    //println!("{:?}", seeds.iter().min().unwrap());
-    println!("{:?}", seeds);
+    println!("{:?}", seeds.iter().min().unwrap());
+    //println!("{:?}", seeds);
 
 } 
 
 fn parse_data() -> (Vec<i64>, Vec<Map>) {
-    let file: File = File::open("./src/test.txt").unwrap();
+    let file: File = File::open("./src/input.txt").unwrap();
     let reader: BufReader<File> = BufReader::new(file);
 
     let mut seeds: Vec<i64> = Vec::new();
