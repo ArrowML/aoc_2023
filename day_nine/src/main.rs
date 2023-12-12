@@ -2,14 +2,15 @@ use std::fs::File;
 use std::io::{BufReader, BufRead};
 
 fn main() {
-    part1()
+    //part1();
+    part2();
 }
 
 //1842168671 - correct
 //1842168680 - incorrect
 
 fn part1() {
-    let file: File = File::open("./src/input.txt").unwrap();
+    let file: File = File::open("./src/test1.txt").unwrap();
     let reader: BufReader<File> = BufReader::new(file);
 
     let mut reports: Vec<Vec<i64>> = Vec::new();
@@ -23,6 +24,25 @@ fn part1() {
         let mut set: Vec<Vec<i64>> = vec![r];
         set = build_layers(&set);
         total += calc_value(&set);
+    }
+    println!("{}", total);
+}
+
+fn part2() {
+    let file: File = File::open("./src/input.txt").unwrap();
+    let reader: BufReader<File> = BufReader::new(file);
+
+    let mut reports: Vec<Vec<i64>> = Vec::new();
+    for line in reader.lines() {
+        let report = line.unwrap().split_whitespace().map(|s| s.parse::<i64>().unwrap()).collect();
+        reports.push(report);
+    }
+
+    let mut total: i64 = 0;
+    for r in reports {
+        let mut set: Vec<Vec<i64>> = vec![r];
+        set = build_layers(&set);
+        total += calc_value_rev(&set);
     }
     println!("{}", total);
 }
@@ -61,4 +81,20 @@ fn calc_value(set: &Vec<Vec<i64>>) -> i64 {
        println!("{:?}", row);
     }
     *current[0].last().unwrap()
+}
+
+fn calc_value_rev(set: &Vec<Vec<i64>>) -> i64 {
+    let mut current = set.clone();
+    for i in (0..set.len()).rev() {
+        if i == set.len() - 1 {
+            continue;
+        }
+        let a = *current[i].first().unwrap();
+        let b = *current[i + 1].first().unwrap();
+        current[i].insert(0, a - b)
+    }
+    for row in &current {
+      //println!("{:?}", row);
+    }
+    *current[0].first().unwrap()
 }
