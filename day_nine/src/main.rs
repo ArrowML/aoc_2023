@@ -81,9 +81,6 @@ fn calc_value(set: &Vec<Vec<i64>>) -> i64 {
         let b = *current[i + 1].last().unwrap();
         current[i].push(a + b);
     }
-    for row in &current {
-       println!("{:?}", row);
-    }
     *current[0].last().unwrap()
 }
 
@@ -96,9 +93,6 @@ fn calc_value_rev(set: &Vec<Vec<i64>>) -> i64 {
         let a = *current[i].first().unwrap();
         let b = *current[i + 1].first().unwrap();
         current[i].insert(0, a - b)
-    }
-    for row in &current {
-      //println!("{:?}", row);
     }
     *current[0].first().unwrap()
 }
