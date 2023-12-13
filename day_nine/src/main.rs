@@ -2,15 +2,12 @@ use std::fs::File;
 use std::io::{BufReader, BufRead};
 
 fn main() {
-    //part1();
+    part1();
     part2();
 }
 
-//1842168671 - correct
-//1842168680 - incorrect
-
 fn part1() {
-    let file: File = File::open("./src/test1.txt").unwrap();
+    let file: File = File::open("./src/input.txt").unwrap();
     let reader: BufReader<File> = BufReader::new(file);
 
     let mut reports: Vec<Vec<i64>> = Vec::new();
@@ -58,7 +55,14 @@ fn get_deltas(row: Vec<i64>) -> Vec<i64> {
 fn build_layers(layers: &Vec<Vec<i64>>) -> Vec<Vec<i64>> {
     let mut new_layers = layers.clone();
     let last = new_layers.last().unwrap();
-    if last.iter().sum::<i64>() != 0 {
+    let mut end = true;
+    for i in last{
+        if i != &0 {
+            end = false;
+            break;
+        }
+    }
+    if !end {
         let row = get_deltas(last.to_vec());
         new_layers.push(row);
         new_layers = build_layers(&new_layers).to_vec();
