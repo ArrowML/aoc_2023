@@ -1,45 +1,27 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufReader, BufRead};
+use std::ops;
 
 
 #[derive(Debug, Clone, Default)]
 struct Point {
-    joint: Joint,
+    val: char,
     x: usize,
     y: usize
 }
 
-#[derive(Debug, Clone, Default)]
-struct Joint {
-    north: bool,
-    south: bool,
-    east: bool,
-    west: bool,
-}
-
 fn main() {
 
-    let file: File = File::open("./src/test.txt").unwrap();
+    let file: File = File::open("./src/input.txt").unwrap();
     let reader: BufReader<File> = BufReader::new(file);
-
-    let joint_types: HashMap<char, Joint> = HashMap::from([
-        ('|', Joint{north: true, south: true, east:false, west: false}),
-        ('-', Joint{north: false, south: false, east:true, west: true}),
-        ('L', Joint{north: true, south: false, east:true, west: false}),
-        ('J', Joint{north: true, south: false, east:false, west: true}),
-        ('7', Joint{north: false, south: true, east:false, west: true}),
-        ('F', Joint{north: false, south: true, east:true, west: false}),
-        ('.', Joint{north: false, south: false, east:false, west: false}),
-        ('S', Joint{north: true, south: true, east:true, west: true})
-    ]);
 
     let mut grid:Vec<Vec<Point>> = Vec::new();
     let mut start: Point = Point::default();
     for line in reader.lines().enumerate() {
         let mut row:Vec<Point> = Vec::new();
         for c in line.1.unwrap().chars().enumerate() {
-            let point = Point{joint: joint_types[&c.1].clone(), x: c.0, y: line.0};
+            let point = Point{val: c.1.clone(), x: c.0, y: line.0};
             if c.1 == 'S' {
                 start = point.clone();
             }
@@ -62,45 +44,69 @@ fn part1(grid: &Vec<Vec<Point>>, start: &Point) {
 
     while !end {
         let adjacents = get_next_pipes(grid, &prev, &next);
-        println!("{:?}", adjacents);
         prev = next.clone();
         next = get_next_joint(adjacents, &prev);
 
         counter += 1;
-        /*
-        if same_point(&next, start){
+        if same_point(&next, start) {
             end = true;
-        }
-        */
-
-        if counter == 5 {
-            end = true;
-        }
+        } 
     }
+
+    println!("{}",counter/2);
 
 }
 
 fn get_next_joint(adjacents: Vec<Point>, current: &Point) -> Point {
 
-    for a in adjacents {
-        if current.joint.north && a.joint.north {
-            println!("{:?}", a);
-            return a.clone();
+    let mut ops: Vec<Point> = Vec::new();
+
+    for a in adjacents.clone() {
+        if current.val == 'S' && a.x > current.x && (a.val == '-' || a.val == 'J' || a.val == '7')  {
+            ops.push(a.clone())
         }
-        if current.joint.south && a.joint.south {
-            println!("{:?}", a);
-            return a.clone();
+        if current.val == 'S' && a.y > current.y && (a.val == '|' || a.val == 'J' || a.val == 'L') {
+            ops.push(a.clone())
         }
-        if current.joint.east && a.joint.east {
-            println!("{:?}", a);
-            return a.clone();
+        if current.val == '|' && a.y < current.y && (a.val == '|' || a.val == '7' || a.val == 'F' || a.val == 'S') {
+            ops.push(a.clone())
         }
-        if current.joint.west && a.joint.west {
-            println!("{:?}", a);
-            return a.clone();
+        if current.val == '|' && a.y > current.y && (a.val == '|' || a.val == 'J' || a.val == 'L' || a.val == 'S') {
+            ops.push(a.clone())
+        }
+        if current.val == '-' && a.x < current.x && (a.val == '-' || a.val == 'F' || a.val == 'L' || a.val == 'S') {
+            ops.push(a.clone())
+        }
+        if current.val == '-' && a.x > current.x && (a.val == '-' || a.val == 'J' || a.val == '7' || a.val == 'S') {
+            ops.push(a.clone())
+        }
+        if current.val == 'L' && a.x > current.x && (a.val == '-' || a.val == 'J' || a.val == '7' || a.val == 'S') {
+            ops.push(a.clone())
+        }
+        if current.val == 'L' && a.y < current.y && (a.val == '|' || a.val == 'F' || a.val == '7' || a.val == 'S') {
+            ops.push(a.clone())
+        }
+        if current.val == 'J' && a.x < current.x && (a.val == '-' || a.val == 'F' || a.val == 'L' || a.val == 'S') {
+            ops.push(a.clone())
+        }
+        if current.val == 'J' && a.y < current.y && (a.val == '|' || a.val == 'F' || a.val == '7' || a.val == 'S') {
+            ops.push(a.clone())
+        }
+        if current.val == '7' && a.x < current.x && (a.val == '-' || a.val == 'F' || a.val == 'L' || a.val == 'S') {
+            ops.push(a.clone())
+        }
+        if current.val == '7' && a.y > current.y && (a.val == '|' || a.val == 'L' || a.val == 'J' || a.val == 'S') {
+            ops.push(a.clone())
+        }
+        if current.val == 'F' && a.x > current.x && (a.val == '-' || a.val == 'J' || a.val == '7' || a.val == 'S') {
+            ops.push(a.clone())
+        }
+        if current.val == 'F' && a.y > current.y && (a.val == '|' || a.val == 'L' || a.val == 'J' || a.val == 'S') {
+            ops.push(a.clone())
         }
     }
-    Point::default()
+    return ops.first().unwrap().clone();
+    
 }
 
 fn same_point(p1: &Point, p2: &Point) -> bool {
@@ -110,7 +116,7 @@ fn same_point(p1: &Point, p2: &Point) -> bool {
 fn get_next_pipes(grid: &Vec<Vec<Point>>, prev: &Point, to: &Point) -> Vec<Point> {
 
     let max_col = grid.len() - 1;
-    let max_row = grid[0].len();
+    let max_row = grid[0].len() -1;
 
     let mut adjacents: Vec<Point> = Vec::new();
 
