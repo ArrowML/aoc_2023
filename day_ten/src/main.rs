@@ -1,8 +1,6 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufReader, BufRead};
-use std::ops;
-
 
 #[derive(Debug, Clone, Default)]
 struct Point {
@@ -13,7 +11,7 @@ struct Point {
 
 fn main() {
 
-    let file: File = File::open("./src/input.txt").unwrap();
+    let file: File = File::open("./src/test2.txt").unwrap();
     let reader: BufReader<File> = BufReader::new(file);
 
     let mut grid:Vec<Vec<Point>> = Vec::new();
@@ -21,7 +19,7 @@ fn main() {
     for line in reader.lines().enumerate() {
         let mut row:Vec<Point> = Vec::new();
         for c in line.1.unwrap().chars().enumerate() {
-            let point = Point{val: c.1.clone(), x: c.0, y: line.0};
+            let point = Point{val: c.1, x: c.0, y: line.0};
             if c.1 == 'S' {
                 start = point.clone();
             }
@@ -30,7 +28,9 @@ fn main() {
         grid.push(row)
     }
 
-    part1(&grid, &start);
+    //part1(&grid, &start);
+
+    part2(&grid, &start);
 
 }
 
@@ -54,7 +54,39 @@ fn part1(grid: &Vec<Vec<Point>>, start: &Point) {
     }
 
     println!("{}",counter/2);
+}
 
+fn part2(grid: &Vec<Vec<Point>>, start: &Point) {
+    let _ = grid;
+
+    let mut end = false;
+    let mut next = start.clone();
+    let mut prev = Point::default();
+
+    let mut pipe_points: HashMap<(usize, usize), Point> = HashMap::new();
+    pipe_points.insert((start.x, start.y), start.clone());
+
+    while !end {
+        let adjacents = get_next_pipes(grid, &prev, &next);
+        prev = next.clone();
+        next = get_next_joint(adjacents, &prev);
+        pipe_points.insert((next.x, next.y), next.clone());
+        if same_point(&next, start) {
+            end = true;
+        } 
+    }
+
+    let mut area: Vec<Point> = Vec::new();
+    let mut inside: bool = false;
+
+    for r in grid {
+        for p in r {
+            let co = (p.x, p.y);
+            //get ranges
+        }
+    }
+
+    println!("{:?}",pipe_points);
 }
 
 fn get_next_joint(adjacents: Vec<Point>, current: &Point) -> Point {
